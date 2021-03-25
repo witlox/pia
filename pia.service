@@ -1,0 +1,11 @@
+[Unit]
+Description=Personal Information Assesor Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=pia
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
