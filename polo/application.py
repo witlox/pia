@@ -25,6 +25,9 @@ import math
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
 
+from pyaml_env import parse_config
+
+from polo.utils import hash_file
 from polo.storage import Storage
 
 
@@ -42,8 +45,9 @@ def main():
     half_cores = math.ceil(os.cpu_count() / 2)
 
     parser.add_argument('-t', '--thread-count', default=half_cores, help="number of threads to assign to polo")
+    parser.add_argument('-c', '--config-file', default=None, help="path to locate the config file")
     parser.add_argument('-l', '--log-file', default=None, help="path to store logfile")
-    parser.add_argument('-p', '--storage-path', default=None, help="directory where to store cache")
+    parser.add_argument('-p', '--storage-path', default=None, help="directory where to store data")
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help="verbose logging")
 
     args = parser.parse_args()
@@ -52,7 +56,7 @@ def main():
     if args.log_file:
         file_handler = logging.FileHandler(args.log_file)
         file_handler.setFormatter(logging.Formatter(log_format))
-        root_logger.addHandler(file_handler)
+        root_logger.addHandler(file_handler)            
     if args.verbose:
         root_logger.setLevel(logging.DEBUG)
     else:
@@ -64,15 +68,46 @@ def main():
     loop = asyncio.get_event_loop()
 
     with ThreadPoolExecutor(args.thread_count) as pool:
+        running = True
+        config = None
+            
+        # refresh our configuration every 60 seconds
+        def refresh_config(file_name):
+            config_hash = None
+            while running:
+                if not file_name:
+                    if os.path.exists('polo.conf'):
+                        file_name = 'polo.conf'
+                    elif os.path.exists(os.path.join(os.path.expanduser, 'polo.conf')):
+                        file_name = os.path.join(os.path.expanduser, 'polo.conf')
+                    elif os.path.exists(os.path.join('etc', 'polo', 'polo.conf')):
+                        file_name = os.path.join('etc', 'polo', 'polo.conf')
+                    elif 'POLO_CONF' in os.environ:
+                        file_name = os.environ['POLO_CONF']
+                    else:
+                        logger.error('no valid configuration file found')
+                if not os.path.exists(file_name):
+                    logger.error('could not locate configuration at {0}'.format(file_name))
+                else:
+                    current_hash = hash_file(file_name)
+                    if config_hash != current_hash:
+                        logger.debug("config file changed, reloading")
+                        config_hash = current_hash
+                        config = parse_config(file_name)
+                time.sleep(60)
+        async def scheduled_configuration_refresh():
+            await loop.run_in_executor(pool, refresh_config, args.config_file)
+        loop.create_task(scheduled_configuration_refresh())
 
         # spawn tasks in queue for regularly check sources and enhancing graph (make sure the tasks respawn themselves at the back of the queue)
-        #result = await loop.run_in_executor(pool, listener(queue))
-        
+        result = await loop.run_in_executor(pool, listener(queue))
         
         try:
             loop.run_forever()
         except:
             logger.info("interrupt received")
+
+        running = False
 
     if args.storage_path:
         loop.create_task(storage.save())
