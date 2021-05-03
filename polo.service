@@ -1,5 +1,5 @@
 [Unit]
-Description=Personal Information Assesor Service
+Description=Polo Information Collector Service
 After=network.target
 
 [Service]
