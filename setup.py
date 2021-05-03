@@ -49,11 +49,11 @@ if sys.argv[-1] == "test":
 
 setup(name="pia",
       version=version,
-      description="Personal Information Assesor",
+      description="Polo Information Collector",
       long_description=open("README.md").read(),
       author="Pim Witlox",
       author_email="pim@witlox.io",
-      url="https://github.com/witlox/pia",
+      url="https://github.com/witlox/polo",
       license="MIT",
       entry_points={
           "console_scripts": [
@@ -68,9 +68,9 @@ setup(name="pia",
       python_requires=">=3.7",
       keywords="Python, Python3",
       project_urls={
-          "Documentation": "https://pia.readthedocs.io/en/latest/",
-          "Source": "https://github.com/witlox/pia",
-          "Tracker": "https://github.com/witlox/pia/issues",
+          "Documentation": "https://polo.readthedocs.io/en/latest/",
+          "Source": "https://github.com/witlox/polo",
+          "Tracker": "https://github.com/witlox/polo/issues",
       },
       test_suite="tests",
       tests_require=test_requirements,
