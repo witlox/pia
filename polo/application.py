@@ -25,23 +25,23 @@ import math
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
 
-from pia.storage import Storage
+from polo.storage import Storage
 
 
 log_format = "%(asctime)s [%(levelname)-8.8s] %(message)s"
 logging.basicConfig(level=logging.INFO, format=log_format)
-logger = logging.getLogger('pia')
+logger = logging.getLogger('polo')
 
 
 def main():
     """
     entry point
     """
-    parser = argparse.ArgumentParser(description="Personal Information Assesor")
+    parser = argparse.ArgumentParser(description="Polo Information Collector")
 
     half_cores = math.ceil(os.cpu_count() / 2)
 
-    parser.add_argument('-t', '--thread-count', default=half_cores, help="number of threads to assign to PIA")
+    parser.add_argument('-t', '--thread-count', default=half_cores, help="number of threads to assign to polo")
     parser.add_argument('-l', '--log-file', default=None, help="path to store logfile")
     parser.add_argument('-p', '--storage-path', default=None, help="directory where to store cache")
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help="verbose logging")
